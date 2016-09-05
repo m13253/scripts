@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+
+# The original author of this program, "till", is StarBrilliant.
+# This file is released under General Public License version 3.
+# You should have received a copy of General Public License text alongside with
+# this program. If not, you can obtain it at http://gnu.org/copyleft/gpl.html .
+# This program comes with no warranty, the author will not be resopnsible for
+# any damage or problems caused by this program.
+
+import math
+import os
+import sys
+import time
+import parsedatetime  # https://pypi.python.org/pypi/parsedatetime
+
+
+def main():
+    if len(sys.argv) < 3:
+        sys.stdout.write(
+            'Usage: %s TIME[.FRAC] COMMAND [ARGS ...]\n'
+            '\n'
+            'This program will wait until TIME, then execute COMMAND.'
+            '\n'
+            'TIME is a time specification that is understood by python-dateparser.\n'
+            'FRAC may be a number to specify a time more precise than a second.\n\n'
+            'Warning: This program is not garanteed to be DST aware or leap second aware.\n\n'
+        )
+        return
+
+    if '.' in sys.argv[1]:
+        spec, frac = sys.argv[1].rsplit('.', 1)
+    else:
+        spec, frac = sys.argv[1], None
+    preset, confidence = parsedatetime.Calendar().parse(spec)
+    if confidence == 0:
+        sys.stderr.write('Invalid time specification: %s\n' % sys.argv[1])
+        sys.exit(1)
+    if frac:
+        if frac[0] != '-':
+            frac = float('.' + frac)
+        else:
+            frac = float('-.' + frac[1:])
+    else:
+        frac = 0
+    preset = time.mktime(preset) + frac
+    sys.stderr.write(time.strftime('Preset: %Y-%m-%d %H:%M:%S', time.localtime(preset)) + '.%09.0f\n' % (frac % 1.0 * 1000000000))
+
+    while True:
+        now = time.time()
+        nowfrac = now - math.floor(now)
+        if now >= preset:
+            sys.stderr.write(time.strftime('Now:    %Y-%m-%d %H:%M:%S', time.localtime(now)) + '.%09.0f\nExecuting %s\n\n' % (nowfrac * 1000000000, ' '.join(sys.argv[2:])))
+            os.execvp(sys.argv[2], sys.argv[2:])
+            assert OSError('can not exec %s' % sys.argv[2])
+        delta = preset - now
+        if delta >= 2.0:
+            sys.stderr.write(time.strftime('Now:    %Y-%m-%d %H:%M:%S', time.localtime(now)) + '.%09.0f\n' % (nowfrac * 1000000000))
+            time.sleep(int(delta)//2)
+        else:
+            time.sleep(delta/2)
+
+
+if __name__ == '__main__':
+    main()
