@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Global SOCKS5 proxy
+
+# The original author of this program, "socksfwd", is StarBrilliant.
+# This file is released under General Public License version 3.
+# You should have received a copy of General Public License text alongside with
+# this program. If not, you can obtain it at http://gnu.org/copyleft/gpl.html .
+# This program comes with no warranty, the author will not be resopnsible for
+# any damage or problems caused by this program.
+
+# See http://m13253.blogspot.com/2016/07/global-socks5-proxy-forward-with-tun2socks.html for a complete solution on a Raspberry Pi
+ 
+SOCKS_SERVER=xxx.xxx.xxx.xxx # The IP address of the SOCKS proxy server
+SOCKS_PORT=1080              # The port number of the SOCKS proxy server
+GATEWAY_IP=192.168.1.1       # The IP address of your home gateway (router)
+BYPASS_IPS=(yyy.yyy.yyy.yyy zzz.zzz.zzz.zzz) # IP addresses to connect directly (e.g. DNS servers, since UDP can not work)
+TUN_NETWORK_DEV=tun0         # Choose a non-conflicting device identifier
+TUN_NETWORK_PREFIX=10.210.0  # Choose a non-conflicting IP prefix (only 3 dots)
+ 
+start_fwd() {
+    ip tuntap add dev "$TUN_NETWORK_DEV" mode tun
+    ip addr change "$TUN_NETWORK_PREFIX.1/30" dev "$TUN_NETWORK_DEV"
+    ip link set "$TUN_NETWORK_DEV" up
+    for i in "${BYPASS_IPS[@]}"
+    do
+        ip route add "$i" via "$GATEWAY_IP" metric 5
+    done
+    ip route add default via "$TUN_NETWORK_PREFIX.2" metric 6
+    badvpn-tun2socks --tundev "$TUN_NETWORK_DEV" --netif-ipaddr "$TUN_NETWORK_PREFIX.2" --netif-netmask 255.255.255.252 --socks-server-addr "$SOCKS_SERVER:$SOCKS_PORT" &
+    TUN2SOCKS_PID="$!"
+}
+ 
+stop_fwd() {
+    ip route del default via "$TUN_NETWORK_PREFIX.2" metric 6
+    for i in "${BYPASS_IPS[@]}"
+    do
+        ip route del "$i" via "$GATEWAY_IP" metric 5
+    done
+    ip tuntap del dev "$TUN_NETWORK_DEV" mode tun
+}
+ 
+start_fwd
+trap stop_fwd INT TERM
+wait "$TUN2SOCKS_PID"
