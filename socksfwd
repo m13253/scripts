@@ -9,6 +9,8 @@
 # This program comes with no warranty, the author will not be resopnsible for
 # any damage or problems caused by this program.
 
+# Dependencies: badvpn-tun2socks iproute2
+
 # See http://m13253.blogspot.com/2016/07/global-socks5-proxy-forward-with-tun2socks.html for a complete solution on a Raspberry Pi
  
 SOCKS_SERVER=xxx.xxx.xxx.xxx # The IP address of the SOCKS proxy server
