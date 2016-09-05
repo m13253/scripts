@@ -1,0 +1,37 @@
+#!/usr/bin/python
+# The script was adapted from
+# http://ubuntuforums.org/showthread.php?t=701336&p=4368203#post4368203
+# I posted here for convenience. Credit goes to the original author.
+# No warranty is provided. Use it at your own risk.
+#
+# Strips all STL symbols from the object file %1
+#
+# Known bugs:
+# The original author is not escaping paths containing space,
+# I am not preparing to fix it. Just please avoid paths with space.
+
+import os
+import sys
+
+if len(sys.argv)!=2:
+    print("stl_debug_symbol_remove: Expected precisely the object file")
+    sys.exit()
+
+info = os.popen("nm "+sys.argv[1]+" -a -l -s")
+
+cmdLine = "strip"
+
+try:
+    for line in info:
+        stuff = line.strip().split()
+        if len(stuff)==4:
+            if "/include/c++/" in stuff[3]:
+                cmdLine = cmdLine + " -N "+stuff[2]
+
+    # Strip symbols
+    cmdLine = cmdLine + " " + sys.argv[1]
+    print("stl_debug_symbol_remove.py: Calling: " + cmdLine)
+    os.system(cmdLine)
+
+finally:
+    info.close()

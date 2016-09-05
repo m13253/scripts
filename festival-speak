@@ -1,0 +1,11 @@
+#!/bin/bash
+
+while true
+do
+    _line=
+    read _line
+    if [ "$_line" ]
+    then
+        echo "$_line" | aoss festival --tts
+    fi
+done

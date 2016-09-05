@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+
+'''Dump the command line passed to it'''
+
+import sys
+
+
+def quote_argv(argv):
+    for i in argv:
+        apos = ' ' in i or '\\' in i
+        yield "'"+i.replace("'", "'\\''")+"'" if apos else i.replace("'", "\\'")
+
+
+def main():
+    sys.stderr.write(' '.join(quote_argv(sys.argv)))
+    sys.stderr.write('\n')
+
+
+if __name__ == '__main__':
+    main()

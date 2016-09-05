@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ "$1" ]
+then
+    NEW_VT="$*"
+    if [ "$2" ]
+    then
+        NEW_DISPLAY="$2"
+    else
+        NEW_DISPLAY=:1
+    fi
+else
+    NEW_VT=vt3
+    NEW_DISPLAY=:1
+fi
+Xorg "$NEW_VT" "$NEW_DISPLAY" &
+XORG_PID="$!"
+export DISPLAY="$NEW_DISPLAY"
+sleep 3
+twm &
+sleep 2
+VirtualBox
+kill "$XORG_PID"
