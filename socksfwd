@@ -44,6 +44,7 @@ stop_fwd() {
     ip tuntap del dev "$TUN_NETWORK_DEV" mode tun
 }
  
+ulimit -n 1048576
 start_fwd
 trap stop_fwd INT TERM
 wait "$TUN2SOCKS_PID"
