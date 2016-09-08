@@ -16,4 +16,6 @@ try:
         time.sleep(math.ceil(now) - now)
         f.seek(0)
 except KeyboardInterrupt:
+    f.truncate(0)
+    f.close()
     sys.stderr.write('\n')
