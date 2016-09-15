@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ "$1" == "stop" ]
+then
+    pacmd unload-module module-ladspa-sink
+    exit
+fi
+
+pacmd load-module module-ladspa-sink sink_name=bs2b master=alsa_output.pci-0000_00_1b.0.analog-stereo plugin=bs2b label=bs2b control=700,4.5
+pacmd set-default-sink bs2b
+
