@@ -14,6 +14,10 @@ import time
 import parsedatetime  # https://pypi.python.org/pypi/parsedatetime
 
 
+def format_time(unix_time):
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(unix_time)) + '.%09.0f' % ((unix_time - math.floor(unix_time)) * 1000000000)
+
+
 def main():
     if len(sys.argv) < 3:
         sys.stdout.write(
@@ -43,20 +47,20 @@ def main():
     else:
         frac = 0
     preset = time.mktime(preset) + frac
-    sys.stderr.write(time.strftime('Preset: %Y-%m-%d %H:%M:%S', time.localtime(preset)) + '.%09.0f\n' % (frac % 1.0 * 1000000000))
+    sys.stderr.write('Preset: %s\n' % format_time(preset))
 
     while True:
         now = time.time()
-        nowfrac = now - math.floor(now)
         if now >= preset:
-            sys.stderr.write(time.strftime('Now:    %Y-%m-%d %H:%M:%S', time.localtime(now)) + '.%09.0f\nExecuting %s\n\n' % (nowfrac * 1000000000, ' '.join(sys.argv[2:])))
+            sys.stderr.write('Now:    %s\nExecuting %s\n\n' % (format_time(now), ' '.join(sys.argv[2:])))
             os.execvp(sys.argv[2], sys.argv[2:])
             assert OSError('can not exec %s' % sys.argv[2])
+
         delta = preset - now
         if delta >= 2.0:
-            sys.stderr.write(time.strftime('Now:    %Y-%m-%d %H:%M:%S', time.localtime(now)) + '.%09.0f\n' % (nowfrac * 1000000000))
+            sys.stderr.write('Check:  %s\n' % format_time(now))
             time.sleep(int(delta)//2)
-        else:
+        elif delta >= 0.05:
             time.sleep(delta/2)
 
 
