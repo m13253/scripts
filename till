@@ -15,7 +15,7 @@ import parsedatetime  # https://pypi.python.org/pypi/parsedatetime
 
 
 def format_time(unix_time):
-    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(unix_time)) + '.%09.0f' % ((unix_time - math.floor(unix_time)) * 1000000000)
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(unix_time)) + '.%09.0f' % (unix_time % 1 * 1000000000)
 
 
 def main():
@@ -34,7 +34,7 @@ def main():
     if '.' in sys.argv[1]:
         spec, frac = sys.argv[1].rsplit('.', 1)
     else:
-        spec, frac = sys.argv[1], None
+        spec, frac = sys.argv[1], 0
     preset, confidence = parsedatetime.Calendar().parse(spec)
     if confidence == 0:
         sys.stderr.write('Invalid time specification: %s\n' % sys.argv[1])
@@ -44,8 +44,6 @@ def main():
             frac = float('.' + frac)
         else:
             frac = float('-.' + frac[1:])
-    else:
-        frac = 0
     preset = time.mktime(preset) + frac
     sys.stderr.write('Preset: %s\n' % format_time(preset))
 
