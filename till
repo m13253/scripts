@@ -21,23 +21,34 @@ def format_time(unix_time):
 def main():
     if len(sys.argv) < 3:
         sys.stdout.write(
-            'Usage: %s TIME[.FRAC] COMMAND [ARGS ...]\n'
+            'Usage: %s [-q] TIME[.FRAC] COMMAND [ARGS ...]\n'
             '\n'
             'This program will wait until TIME, then execute COMMAND.'
             '\n'
             'TIME is a time specification that is understood by python-dateparser.\n'
-            'FRAC may be a number to specify a time more precise than a second.\n\n'
+            'FRAC may be a number to specify a time more precise than a second.\n'
+            '\n'
+            'If you specify -q, time check information will not be displayed.\n'
+            '\n'
             'Warning: This program is not garanteed to be DST aware or leap second aware.\n\n'
         )
         return
 
-    if '.' in sys.argv[1]:
-        spec, frac = sys.argv[1].rsplit('.', 1)
+    if sys.argv[1] == '-q':
+        quiet = True
+        spec_str = sys.argv[2]
+        command = sys.argv[3:]
     else:
-        spec, frac = sys.argv[1], 0
+        quiet = False
+        spec_str = sys.argv[1]
+        command = sys.argv[2:]
+    if '.' in spec_str:
+        spec, frac = spec_str.rsplit('.', 1)
+    else:
+        spec, frac = spec_str, 0
     preset, confidence = parsedatetime.Calendar().parse(spec)
     if confidence == 0:
-        sys.stderr.write('Invalid time specification: %s\n' % sys.argv[1])
+        sys.stderr.write('Invalid time specification: %s\n' % spec_str)
         sys.exit(1)
     if frac:
         if frac[0] != '-':
@@ -45,18 +56,21 @@ def main():
         else:
             frac = float('-.' + frac[1:])
     preset = time.mktime(preset) + frac
-    sys.stderr.write('Preset: %s\n' % format_time(preset))
+    if not quiet:
+        sys.stderr.write('Preset: %s\n' % format_time(preset))
 
     while True:
         now = time.time()
         if now >= preset:
-            sys.stderr.write('Now:    %s\nExecuting %s\n\n' % (format_time(now), ' '.join(sys.argv[2:])))
-            os.execvp(sys.argv[2], sys.argv[2:])
-            assert OSError('can not exec %s' % sys.argv[2])
+            if not quiet:
+                sys.stderr.write('Now:    %s\nExecuting: %s\n\n' % (format_time(now), ' '.join(command)))
+            os.execvp(command[0], command)
+            assert OSError('can not exec %s' % command[0])
 
         delta = preset - now
         if delta >= 2.0:
-            sys.stderr.write('Check:  %s\n' % format_time(now))
+            if not quiet:
+                sys.stderr.write('Check:  %s\n' % format_time(now))
             time.sleep(int(delta)//2)
         elif delta >= 0.05:
             time.sleep(delta/2)
