@@ -1,0 +1,59 @@
+#!/bin/bash
+# This program is released under MIT license.
+# This program comes with absolutely no warranty and may cause damages, use it at your risk.
+# The author of this program is StarBrilliant <echo bTEzMjUzQGhvdG1haWwuY29tCg== | base64 -d>
+
+if [ "$#" -eq 0 ]
+then
+  echo "Optimize large-size images for web by interlacing"
+  echo "Usage: $0 1.png 2.jpg ..."
+  echo "optipng and libjpeg are required."
+  exit
+fi
+jpegtran_output=""
+jpegtran_output="$(mktemp)"
+jpegtran_scan=""
+jpegtran_scan="$(mktemp)"
+if [ -z "$jpegtran_output" -o -z "$jpegtran_scan" ]
+then
+  echo 'Fatal: mktemp is unavailable.'
+  return 1
+fi
+cat >"$jpegtran_scan"<<'EOF'
+# This file is adapted from jpgcrush
+# progressive jpeg scan specification (formatted for `jpegtran -scans`)
+# optimized for size, not for actual progressive transmission.
+# this averages about 1% smaller than jpegtran's default scan order, and about 1% bigger than image-specific brute-force search.
+0:   0  0 0 0 ;
+1 2: 0  0 0 0 ;
+0:   1  8 0 2 ;
+1:   1  8 0 0 ;
+2:   1  8 0 0 ;
+0:   9 63 0 2 ;
+0:   1 63 2 1 ;
+0:   1 63 1 0 ;
+1:   9 63 0 0 ;
+2:   9 63 0 0 ;
+EOF
+for i in "$@"
+do
+  basename_i="$(basename "$i")"
+  if [ "$(basename "$i" .png)" != "$basename_i" -o "$(basename "$i" .PNG)" != "$basename_i" ]
+  then
+    echo "optipng -i1 $i"
+    optipng -i1 "$i"
+  elif  [ "$(basename "$i" .jpg)" != "$basename_i" -o "$(basename "$i" .JPG)" != "$basename_i" -o "$(basename "$i" .jpeg)" != "$basename_i" -o "$(basename "$i" .JPEG)" != "$basename_i" ]
+  then
+    true >"$jpegtran_output"
+    echo "jpegtran -copy all -optimize -progressive -scans "$jpegtran_scan" -outfile $jpegtran_output $i"
+    jpegtran -copy all -optimize -progressive -scans "$jpegtran_scan" -outfile "$jpegtran_output" "$i"
+    if [ "$?" -eq 0 ]
+    then
+        echo "mv $jpegtran_output $i"
+        mv "$jpegtran_output" "$i"
+    fi
+  else
+    echo "Error: unsupported file, only *.png, *.jpg, *.jpeg are supported."
+  fi
+done
+rm -f "$jpegtran_scan"
