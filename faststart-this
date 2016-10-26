@@ -13,7 +13,7 @@ fi
 for i in "$@"
 do
     output_path=""
-    output_path="$(mktemp)"
+    output_path="$(mktemp -u)"
     if [ -z "$output_path" ]
     then
         echo "Cannot create temporary file." 1>&2
