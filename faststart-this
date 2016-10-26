@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -e
+if [ "$#" -eq 0 ]
+then
+    echo "Usage: faststart-this input1.mp4 [input2.mov input3.m4a ...]"
+    echo
+    echo "This script requires FFmpeg to function"
+    echo
+    exit
+fi
+
+for i in "$@"
+do
+    output_path=""
+    output_path="$(mktemp)"
+    if [ -z "$output_path" ]
+    then
+        echo "Cannot create temporary file." 1>&2
+        exit 1
+    fi
+    echo qt-faststart "$1" "$output_path"
+    qt-faststart "$1" "$output_path"
+    echo mv "$output_path" "$1"
+    mv "$output_path" "$1"
+done
