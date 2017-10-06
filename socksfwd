@@ -23,7 +23,7 @@ TUN_NETWORK_PREFIX=10.210.0  # Choose a non-conflicting IP prefix (only 3 dots)
 start_fwd() {
     ip tuntap add dev "$TUN_NETWORK_DEV" mode tun
     ip addr change "$TUN_NETWORK_PREFIX.1/30" dev "$TUN_NETWORK_DEV"
-    ip link set "$TUN_NETWORK_DEV" up
+    ip link set dev "$TUN_NETWORK_DEV" up
     ip route del default via "$GATEWAY_IP"
     ip route add default via "$GATEWAY_IP" metric 600
     for i in "${BYPASS_IPS[@]}"
