@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -e
+if [ -z "$1" ]
+then
+    echo 'Usage: svg2pdf input.svg [output.pdf]'
+fi
+OUTPUT="$2"
+if [ -z "$OUTPUT" ]
+then
+    OUTPUT="$(basename "$1" .svg).pdf"
+fi
+inkscape -A "$(realpath -s "$OUTPUT")" "$(realpath -s "$1")"
