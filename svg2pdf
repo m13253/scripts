@@ -4,6 +4,7 @@ set -e
 if [ -z "$1" ]
 then
     echo 'Usage: svg2pdf input.svg [output.pdf]'
+    exit 0
 fi
 OUTPUT="$2"
 if [ -z "$OUTPUT" ]
