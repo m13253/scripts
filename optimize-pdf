@@ -1,0 +1,26 @@
+#!/bin/bash
+
+set -e
+if [ "$#" -eq 0 ]
+then
+    echo "Usage: optimize-pdf input1.pdf [input2.pdf input3.pdf ...]"
+    echo
+    echo "This script requires GhostScript to function"
+    echo
+    exit
+fi
+
+for i in "$@"
+do
+    output_path=""
+    output_path="$(mktemp -u)"
+    if [ -z "$output_path" ]
+    then
+        echo "Cannot create temporary file." 1>&2
+        exit 1
+    fi
+    echo gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 -dFastWebView=true -dAutoFilterColorImages=false -dAutoFilterGrayImages=false -dDownsampleColorImages=false -dDownsampleGrayImages=false -dDownsampleMonoImages=false -dPassThroughJPEGImages=true -dNOPAUSE -dQUIET -dBATCH -sOutputFile="$output_path" "$1"
+    gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 -dFastWebView=true -dAutoFilterColorImages=false -dAutoFilterGrayImages=false -dDownsampleColorImages=false -dDownsampleGrayImages=false -dDownsampleMonoImages=false -dPassThroughJPEGImages=true -dNOPAUSE -dQUIET -dBATCH -sOutputFile="$output_path" "$1"
+    echo mv "$output_path" "$1"
+    mv "$output_path" "$1"
+done
