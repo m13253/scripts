@@ -1,0 +1,12 @@
+#!/bin/bash
+
+TMPDIR="$(mktemp -d /tmp/pdfstrip-XXXXXX)" || exit 1
+for i in "$@"
+do
+    echo "Stripping metadata from $i"
+    exiftool -all= -o "$TMPDIR/.pdf" -- "$i" &&
+    qpdf --linearize "$TMPDIR/.pdf" -- "$i"
+    rm -f -- "$TMPDIR/.pdf"
+    echo
+done
+rm -rf -- "$TMPDIR"
