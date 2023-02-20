@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ "$#" -ne 2 ]
+then
+    echo "Usage $0 <FROM.JPG> <TO.JPG>"
+    exit 1
+fi
+echo "Copying metadata from $1 to $2"
+echo exiftool -tagsfromfile "$1" -exif:all -ThumbnailImage= "$2"
+exiftool -tagsfromfile "$1" -exif:all -ThumbnailImage= -- "$2"
