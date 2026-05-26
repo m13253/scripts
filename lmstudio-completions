@@ -1,5 +1,12 @@
 #!/bin/bash
 
+if [ "$(uname)" = Darwin ]
+then
+    GNU_GREP=/opt/homebrew/bin/ggrep
+else
+    GNU_GREP=grep
+fi
+
 APIBASE="${APIBASE:-http://localhost:1234/v1}"
 MODEL="${MODEL:-meta/llama-3.3-70b}"
 PROMPT="$(</dev/stdin)"
