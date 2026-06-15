@@ -7,11 +7,11 @@ else
     GNU_GREP=grep
 fi
 
-APIBASE="${APIBASE:-http://localhost:1234/v1}"
-APIKEY="${APIKEY:-sk-}"
+API_BASE="${API_BASE:-http://localhost:1234/v1}"
+API_KEY="${API_KEY:-sk-}"
 MODEL="${MODEL:-meta/llama-3.3-70b}"
 IFS= read -d '' PROMPT
 
 echo -n "$PROMPT"
-python3 -c 'import json,sys;json.dump({"model":sys.argv[1],"prompt":sys.argv[2],"stream":True},sys.stdout,ensure_ascii=False)' -- "$MODEL" "$PROMPT" | curl --json @- -H "Authorization: Bearer $APIKEY" -Ns "$APIBASE/completions" | $GNU_GREP --line-buffered -Po '(?<=^data: )(?!\[D).*$' | jq --unbuffered -j '.choices[0].text//""'
+python3 -c 'import json,sys;json.dump({"model":sys.argv[1],"prompt":sys.argv[2],"stream":True},sys.stdout,ensure_ascii=False)' -- "$MODEL" "$PROMPT" | curl --json @- -H "Authorization: Bearer $API_KEY" -Ns "$API_BASE/completions" | $GNU_GREP --line-buffered -Po '(?<=^data: )(?!\[D).*$' | jq --unbuffered -j '.choices[0].text//""'
 echo
