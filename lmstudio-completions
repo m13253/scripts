@@ -9,9 +9,10 @@ fi
 
 API_BASE="${API_BASE:-http://localhost:1234/v1}"
 API_KEY="${API_KEY:-sk-}"
+MAX_TOKENS="${MAX_TOKENS:-65536}"
 MODEL="${MODEL:-meta/llama-3.3-70b}"
 IFS= read -d '' PROMPT
 
 echo -n "$PROMPT"
-python3 -c 'import json,sys;json.dump({"model":sys.argv[1],"prompt":sys.argv[2],"stream":True},sys.stdout,ensure_ascii=False)' "$MODEL" "$PROMPT" | curl --json @- --oauth2-bearer "$API_KEY" -NSs "$API_BASE/completions" | $GNU_GREP --line-buffered -Po '(?<=^data: )(?!\[D).*$' | jq --unbuffered -j '.choices[0].text//""'
+python3 -c 'import json,sys;json.dump({"max_tokens":int(sys.argv[1]),"model":sys.argv[2],"prompt":sys.argv[3],"stream":True},sys.stdout,ensure_ascii=False)' "$MAX_TOKENS" "$MODEL" "$PROMPT" | curl --json @- --oauth2-bearer "$API_KEY" -NSs "$API_BASE/completions" | $GNU_GREP --line-buffered -Po '(?<=^data: )(?!\[D).*$' | jq --unbuffered -j '.choices[0].text//""'
 echo
